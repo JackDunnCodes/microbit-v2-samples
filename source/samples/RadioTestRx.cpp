@@ -25,8 +25,10 @@ static void onData2(MicroBitEvent)
 
 void radio_rx_test()
 {
+    uBit.radio.setFrequencyBand(5);
     uBit.messageBus.listen(DEVICE_ID_RADIO, MICROBIT_RADIO_EVT_DATAGRAM, onData);
     uBit.radio.enable();
+    uBit.display.print("K");
 
     while(1)
         uBit.sleep(1000);
@@ -47,8 +49,10 @@ void radio_rx_test2()
 
 void radio_tx_test()
 {
+    uBit.radio.setFrequencyBand(5);
     uBit.radio.enable();
-
+    uBit.radio.datagram.send("1");
+    uBit.display.print("O");
     while(1)
     {
         if (uBit.buttonA.isPressed())
