@@ -8,27 +8,58 @@ MicroBit uBit;
 static uint8_t locount = 0;
 static uint8_t hicount = 0;
 
-static void sendMeshData(ManagedString s) {
-    auto b = new PacketBuffer((uint8_t *) s.toCharArray(), s.length()+8);
-    for(int i=s.length(); i>=0; i--) {
-        b->setByte(i+8, b->getByte(i));
-    }
-    b->setByte(0, 'u');
-     b->setByte(1, 'B');
-     b->setByte(2, 't');
-    
-    b->setByte(3, 'm');
-     b->setByte(4, 's');
-     b->setByte(5, 'h');
-     if(locount >= 0b11111111) {
-         locount = 0;
-         hicount += 1;
-     }
-    locount += 1;
-    b->setByte(6, hicount);
-    b->setByte(7, locount);
+extern "C" void RADIO_IRQHandler(void)
+{
+    if(NRF_RADIO->EVENTS_TXREADY)
+    {
+        NRF_RADIO->EVENTS_TXREADY = 0;
+        NRF_RADIO->EVENTS_END = 0;
 
-    uBit.radio.datagram.send(*b);
+        NRF_RADIO->SHORTS &= ~RADIO_SHORTS_DISABLED_TXEN_Msk;
+        NRF_RADIO->SHORTS |=  RADIO_SHORTS_END_RXEN_Msk;
+
+        NRF_RADIO->TASKS_START = 1;
+    }
+    if(NRF_RADIO->EVENTS_RXREADY)
+    {
+        NRF_RADIO->EVENTS_RXREADY = 0;
+        NRF_RADIO->SHORTS &= ~RADIO_SHORTS_DISABLED_RXEN_Msk;
+        NRF_RADIO->SHORTS |=  RADIO_SHORTS_DISABLED_TXEN_Msk;
+
+        // Start listening and wait for the END event
+        NRF_RADIO->TASKS_START = 1;
+    }
+
+    if(NRF_RADIO->EVENTS_END)
+    {
+        NRF_RADIO->EVENTS_END = 0;
+        if(NRF_RADIO->CRCSTATUS == 1)
+        {
+            int sample = (int)NRF_RADIO->RSSISAMPLE;
+
+            // Associate this packet's rssi value with the data just
+            // transferred by DMA receive
+            MicroBitRadio::instance->setRSSI(-sample);
+
+            // Now move on to the next buffer, if possible.
+            // The queued packet will get the rssi value set above.
+            MicroBitRadio::instance->queueRxBuf();
+
+            // Set the new buffer for DMA
+            NRF_RADIO->PACKETPTR = (uint32_t) MicroBitRadio::instance->getRxBuf();
+        }
+        else
+        {
+            MicroBitRadio::instance->setRSSI(0);
+        }
+
+        // Start listening and wait for the END event
+        NRF_RADIO->TASKS_START = 1;
+    }
+}
+
+static void sendMeshData(ManagedString s) {
+    
 }
 
 static void onData(MicroBitEvent)
