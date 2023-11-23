@@ -23,7 +23,7 @@ extern "C" void RADIO_IRQHandler(void)
     if(NRF_RADIO->EVENTS_RXREADY)
     {
         NRF_RADIO->EVENTS_RXREADY = 0;
-        NRF_RADIO->SHORTS &= ~RADIO_SHORTS_DISABLED_RXEN_Msk;
+        NRF_RADIO->SHORTS &= ~RADIO_SHORTS_END_RXEN_Msk;
         NRF_RADIO->SHORTS |=  RADIO_SHORTS_DISABLED_TXEN_Msk;
 
         // Start listening and wait for the END event
