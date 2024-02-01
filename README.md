@@ -18,10 +18,10 @@ You need some open source pre-requisites to build this repo. You can either inst
 We use Ubuntu Linux for most of our tests. You can also install these tools easily through the package manager:
 
 ```
-    sudo apt install gcc
-    sudo apt install git
-    sudo apt install cmake
-    sudo apt install gcc-arm-none-eabi binutils-arm-none-eabi
+sudo apt install gcc
+sudo apt install git
+sudo apt install cmake
+sudo apt install gcc-arm-none-eabi binutils-arm-none-eabi
 ```
 
 ## Yotta

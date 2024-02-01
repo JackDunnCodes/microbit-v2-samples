@@ -25,27 +25,47 @@ int main()
 {
     uBit.init();
     uBit.buttonB.enable();
+    uBit.buttonA.enable();
     uBit.serial.printf("Go!");
     uBit.display.setBrightness(255);
     uBit.display.image.setPixelValue(4, 2, 255);
-    uBit.meshRadio.enable();
     uBit.display.image.setPixelValue(4, 3, 255);
     uBit.display.setBrightness(255);
+    uBit.meshRadio.enable();
     uBit.display.image.setPixelValue(4, 4, 255);
     int cnt = 0;
     while(true) {
-        uBit.serial.printf("Loop!");
+        cnt++;
+        if ((cnt % 30) == 0)
+        {
+            uBit.serial.printf("Loop-de-loop! %d", cnt);
+        }
         uBit.display.image.setPixelValue(4, 0, (cnt++ * 20) % 255);
         if(uBit.buttonB.isPressed()) {
-//            uBit.meshRadio.datagram.send("Excellent mesh");
+            uBit.meshRadio.datagram.send("Excellent mesh");
             uBit.serial.printf("press!");
             uBit.display.image.setPixelValue(0, 0, 255);
         }
-////        FrameBuffer *a = uBit.meshRadio.recv();
-//        if((char *)a->payload == "Excellent mesh") {
-//            uBit.display.image.setPixelValue(2, 2, 255);
-//        }
-//        uBit.sleep(50);
+        if(uBit.buttonA.isPressed())
+        {
+            uBit.serial.printf("RCV");
+            SequencedFrameBuffer *a = uBit.meshRadio.recv();
+            char *str = (char *)a->payload;
+            if (strcmp(str, "Excellent mesh") == 0)
+            {
+                uBit.serial.printf("Oop, excellent mesh!");
+                uBit.display.image.setPixelValue(2, 2, 255);
+            }
+            if (a)
+            {
+                uBit.serial.printf("Well I got something!");
+                uBit.display.image.setPixelValue(2, 1, 255);
+            }
+            uBit.serial.printf("end!");
+        }
+        uBit.sleep(100);
+        uBit.display.image.setPixelValue(0, 0, 50);
+
     }
 }
 
